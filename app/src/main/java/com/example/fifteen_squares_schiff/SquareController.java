@@ -8,56 +8,80 @@ import android.widget.SeekBar;
 
 import java.util.Arrays;
 
+
+/**
+ * SquareController: implements interfaces for views and the seekbar, allowing
+ *                   their listeners to be set.
+ *
+ * @author **** Henry Schiff ****
+ * @version **** September 30th 2022 ****
+ */
 public class SquareController implements
         View.OnClickListener, View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
 
-    private SquareView squareView;
-    private SquareModel squareModel;
+    // Declare member variables of controller
+    private final SquareView squareView;
+    private final SquareModel squareModel;
 
     public SquareController(SquareView _squareView) {
+
+        // Assign the passed in squareView, then receive the squareModel from it.
         squareView = _squareView;
         squareModel = squareView.getSquareModel();
     }
 
+    /**
+     * Gets called when the reset button is clicked. Resets the board, and
+     * updates the textSize label accordingly.
+     *
+     * @param view the view being clicked
+     */
     @Override
     public void onClick(View view) {
         squareModel.resetBoard();
-        squareView.numberPaint.setTextSize(SquareModel.numberTextSize);
+        squareView.numberPaint.setTextSize(squareModel.numberTextSize);
         squareView.invalidate();
     }
 
+    /**
+     * Gets called when a motion event occurs on the squareView. This event can
+     * be a click, the release of a click, or the movement of the mouse while it
+     * is clicked.
+     *
+     * @param view the view being clicked
+     * @param motionEvent one of the three aforementioned events
+     *
+     * @return true to "consume" the event.
+     */
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
 
+        // Get relevant variables from the event and squareView.
         float x = motionEvent.getX();
         float y = motionEvent.getY();
+        int width = squareView.getWidth();
+        int height = squareView.getHeight();
 
+        // Switch statement that will run a case corresponding to the type of
+        // motion event that occurred. Each case calls an appropriate handler
+        // method from the squareModel, then breaks.
         switch (motionEvent.getAction()) {
 
             case (MotionEvent.ACTION_DOWN):
-                if (squareModel.selected[0] == -1) {
-                    int[] square = squareModel.mouseToSquare(squareView.getWidth(), squareView.getHeight(), x, y);
-
-                    if (square[0] >= 0) {
-                        squareModel.start = new float[]{motionEvent.getX(), motionEvent.getY()};
-                        squareModel.selected = square;
-                        squareModel.selectedDirection = squareModel.checkForZero(square);
-                        squareView.invalidate();
-                    }
-                }
+                squareModel.handleDownEvent(x, y, width, height);
                 break;
 
             case (MotionEvent.ACTION_UP):
                 squareModel.handleUpEvent();
-                squareView.invalidate();
                 break;
 
             case (MotionEvent.ACTION_MOVE):
-                squareModel.handleMoveEvent(motionEvent.getX(), motionEvent.getY());
-                squareView.invalidate();
+                squareModel.handleMoveEvent(x, y);
                 break;
         }
 
+        // Since the above handler methods all affect the view, invalidate to redraw.
+        squareView.invalidate();
         return true;
     }
 
@@ -67,13 +91,12 @@ public class SquareController implements
         squareView.sizeText.setText(i+" x "+i);
     }
 
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
 
-    }
+    // unused methods that were implemented with the seekbar listener interface
 
     @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
+    public void onStartTrackingTouch(SeekBar seekBar) {}
 
-    }
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {}
 }
